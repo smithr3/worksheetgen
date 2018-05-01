@@ -6,12 +6,8 @@ Engine to generate math worksheets with random values.
 
 __author__ = 'Robert'
 
-import os
 import random
-from subprocess import check_output
-
 from sympy import *
-
 
 class Worksheet(object):
 	fileHeader = \
@@ -372,6 +368,7 @@ def subRandom(expr, **kwargs):
 	low = kwargs.get('low', 1)
 	high = kwargs.get('high', 10)
 
+	# make constants unique if possible
 	if len(Algebra.constants) >= high - low + 1:
 		randomValues = [random.randint(low, high) for _ in range(len(Algebra.constants))]
 	else:

@@ -1,0 +1,25 @@
+fractions
+	add/sub with different denominators
+	divide/mult with different denominators
+arithmetic
+factorise
+terminology
+	compare (e.g avg speed vs avg vel)
+	relate (distance to speed)
+	define
+
+
+
+
+
+folder of .tex
+	add_two_fractions
+	sub_two_fractions
+
+class Question(object)
+	self.latex
+
+class Fraction(Question)
+
+	def getNQuestions(self, n)
+		return list

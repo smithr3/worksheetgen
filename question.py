@@ -1,4 +1,10 @@
+
+"""
+Experiments with just replacing RAND1-10 type patterns with numbers. No actual maths being done.
+"""
+
 __author__ = 'Robert'
+
 
 import re
 import random

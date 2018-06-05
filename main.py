@@ -2,6 +2,7 @@
 
 """
 Engine to generate math worksheets with random values.
+Actually generates maths expr/eqns with sympy then prints to latex the question/answer.
 """
 
 __author__ = 'Robert'
@@ -23,6 +24,7 @@ r"""
 	answerPage = \
 r"""
 \newpage
+\setcounter{section}{0}
 \section*{Answers}
 """
 	fileFooter = \
@@ -73,28 +75,6 @@ r"""
 		self.desc = kwargs.get('desc','')
 		self.heading = heading
 
-		if kwargs.get('all'):
-			if self.heading == 'Algebra':
-				self.questions = [
-					Question('collect', q=algebra_collect(n=0)),
-					Question('eval', fn=algebra_randexpr, arg={'allowed':'mdp'}),
-					Question('eval', q=algebra_simplify(n=0)),
-					Question('eval', q=algebra_simplify(n=1)),
-					Question('eval', q=algebra_simplify(n=2)),
-					Question('eval', q=algebra_simplify(n=3)),
-					Question('solve', q=algebra_rearrange(n=0)),
-					Question('solve', q=algebra_randexpr()),
-					Question('solve', q=algebra_randeq()),
-					Question('solve', fn=algebra_randeq),
-					Question('progress', q=algebra_randexpr(progress=True, iter=3)),
-				]
-			elif self.heading == 'Fractions':
-				self.questions = [
-					Question('eval', q=fraction_add(n=0)),
-					Question('eval', q=fraction_add(n=0)),
-					Question('eval', q=fraction_add(n=0)),
-				]
-
 	def generateLatex(self, **kwargs):
 		answersOnly = kwargs.get('answersOnly', False)
 
@@ -114,23 +94,40 @@ r"""
 		return latex
 
 class Question(object):
-	# types
-	types = ['solve', 'eval', 'collect']
+	# types = ['solve', 'eval', 'collect', 'progress']
 
-	def __init__(self, qtype, **kwargs):
-		self.sym_q = kwargs.get('q') # symbolic question
+	def __init__(self, question='fraction_add', difficulty=1):
+		self.sym_q = None # symbolic question
 		self.sym_a = None # symbolic answer
-		self.qtype = qtype
-		self.var = var(kwargs.get('var', 'x'))
-		self.complexity = kwargs.get('complexity', 12) # complexity in terms of depth of expression tree
+		self.qtype = None
+		self.var = var('x')
+		self.complexity = 12 # complexity in terms of depth of expression tree
+		self.fn = None
 
-		self.fn = kwargs.get('fn')
+		eval = ['fraction_add', 'fraction_mixed']
+		collect = ['algebra_collect']
+		expand = ['algebra_expand']
+		factorise = ['algebra_factorise']
+		solve = ['algebra_randeq', 'algebra_trig']
+		self.sym_q = globals()[question](difficulty=difficulty)
+		if question in eval:
+			self.qtype = 'eval'
+		elif question in collect:
+			self.qtype = 'collect'
+		elif question in expand:
+			self.qtype = 'expand'
+		elif question in factorise:
+			self.qtype = 'factorise'
+		elif question in solve:
+			self.qtype = 'solve'
+		else:
+			raise NotImplementedError
 
 		if self.fn is not None:
 			i = 0
 			while not self.goodAnswer():
 				print i
-				self.sym_q = self.fn(**kwargs.get('arg',{}))
+				self.sym_q = self.fn()
 				self.solve()
 				i+=1
 		else:
@@ -149,11 +146,16 @@ class Question(object):
 		elif self.qtype == 'collect':
 			w = Wild('w') # collect all like symbols
 			self.sym_a = collect(self.sym_q, w)
+		elif self.qtype == 'expand':
+			self.sym_a = expand(self.sym_q)
+		elif self.qtype == 'factorise':
+			self.sym_a = factor(self.sym_q)
 		elif self.qtype == 'eval':
 			self.sym_a = self.sym_q.doit()
-		print 'A:', self.sym_a
+		print 'A:', self.sym_a, latex(self.sym_a)
 
 	def generateLatex(self, **kwargs):
+		# used to print answers
 		answerOnly = kwargs.get('answerOnly', False)
 
 		if answerOnly:
@@ -171,6 +173,7 @@ class Question(object):
 		return rv
 
 	def goodAnswer(self):
+		# todo check all unique answers to avoid duplicate questions
 		# answer must exist
 		if self.sym_a is None:
 			return False
@@ -200,18 +203,40 @@ class Algebra(object):
 	]
 	collect_xy = [
 		a*x + b*x + c*y + d*y,
+		a*y + b*x + c*x + d*y,
+		a*x + b*x*y + c*x,
+		a*y + b*x*y+ d*y + c*x*y,
 	]
 	collect = collect_x + collect_xy
 	# EXPAND ##########################################
 	expand_x = [
 		a*(x+b),
-		x*(a+b),
+		x*(a+x),
+		a*x*(a+b*x),
 	]
 	expand_xy = [
 		a*(x+y),
 		x*(a+y),
+		a*x*(y+b*x),
+		a*x*(x+b*y),
+		a*y*(b*x+c*y),
 	]
 	expand = expand_x + expand_xy
+	# FACTORISE ##########################################
+	factorise_hcf = [
+		a*(x+b*y),
+		x*(a+b*y),
+		a*(x+b*y+c*z),
+		a*(b*x+c*y+d*z),
+		a*x*(b*x+c*y+d*z),
+	]
+	factorise_quad = [
+		(x+a)*(x+b),
+	]
+	# TRIG ##########################################
+	trig = [
+		Eq(sin(x), 1/y),
+	]
 	# REARRANGE ##########################################
 	rearrange = [
 		Eq(f, a),
@@ -233,35 +258,39 @@ class Algebra(object):
 	all_expr = collect + expand
 
 class Fractions(object):
-	variables = symbols('x y z')
-	x, y, z = variables
 	constants = symbols('a b c d e', real=True)
 	a, b, c, d, e = constants
 	#######################################################
 	addition = [
 		1/a + 1/b,
 		a/b + c/d,
-		# a/b + c/d,
 		# Rational(a,b) + Rational(c,d),
 		# Frac(a,b) + Frac(c,d),
 	]
+	subtraction = [
+		1/a - 1/b,
+		a/b - c/d,
+	]
+	mixed = [
+		a + 1/b,
+		a + b/c,
+	]
 
 def algebra_collect(**kwargs):
-	nvar = kwargs.get('nvar')
-	n = kwargs.get('n') # nth version of question
-	if nvar == 1:
+	# todo no auto factorising!!
+	n = kwargs.get('difficulty', 1)
+	if n == 1:
+		expr = Algebra.collect_x[0]
+		return subRandom(expr, low=1, high=4)
+	elif n == 2:
 		expr = random.choice(Algebra.collect_x)
-	elif nvar == 2:
+		return subRandom(expr, low=1, high=8, negatives=True)
+	elif n == 3:
 		expr = random.choice(Algebra.collect_xy)
-	else:
-		expr = random.choice(Algebra.collect)
-
-	if type(n) is int:
-		if n < len(Algebra.collect):
-			expr = Algebra.collect[n]
-		else:
-			return -1
-	return subRandom(expr)
+		return subRandom(expr, low=1, high=4, negatives=True)
+	elif n == 4:
+		expr = random.choice(Algebra.collect_xy)
+		return subRandom(expr, low=1, high=8, negatives=True)
 
 def algebra_simplify(**kwargs):
 	"""
@@ -338,41 +367,119 @@ def algebra_randexpr(**kwargs):
 		return subRandom(expr, evaluate=eval)
 
 def algebra_randeq(**kwargs):
-	depth = kwargs.get('iter', 3)
-	ldepth = kwargs.get('lhs', depth)
-	rdepth = kwargs.get('rhs', depth-1)
+	n = kwargs.get('difficulty', 1)
+	ldepth = kwargs.get('lhs', n+2)
+	rdepth = kwargs.get('rhs', n+1)
 	rv = Eq(
 		algebra_randexpr(iter=ldepth),
 		algebra_randexpr(iter=rdepth),
 		evaluate=False,
 	)
-	# print 'rv', rv
 	return rv
 
+def algebra_expand(**kwargs):
+	"""
+	2 (x + 4) = 2x + 8
+	"""
+	n = kwargs.get('difficulty', 1)
+
+	if n == 1:
+		expr = random.choice(Algebra.expand_x[:2])
+		return subRandom(expr, low=2, high=7)
+	elif n == 2:
+		expr = random.choice(Algebra.expand_x)
+		return subRandom(expr, low=2, high=7, negatives=True)
+	elif n == 3:
+		expr = random.choice(Algebra.expand_xy[:2])
+		return subRandom(expr, low=2, high=7)
+	elif n == 4:
+		expr = random.choice(Algebra.expand_xy)
+		return subRandom(expr, low=2, high=9, negatives=True)
+
+def algebra_factorise(**kwargs):
+	"""
+	Questions created by first expanding a good answer.
+	"""
+	n = kwargs.get('difficulty', 1)
+
+	if n == 1:
+		expr = random.choice(Algebra.factorise_hcf[:2])
+		return expand(subRandom(expr, low=2, high=7))
+	elif n == 2:
+		expr = random.choice(Algebra.factorise_hcf)
+		return expand(subRandom(expr, low=2, high=7, negatives=True))
+	elif n == 3:
+		expr = random.choice(Algebra.factorise_quad)
+		return expand(subRandom(expr, low=2, high=7))
+	elif n == 4:
+		expr = random.choice(Algebra.factorise_quad)
+		return expand(subRandom(expr, low=2, high=9, negatives=True))
+
+def algebra_trig(**kwargs):
+	"""
+	Practicing algebra on basic trig ratios
+	"""
+	n = kwargs.get('difficulty', 1)
+
+	if n == 1:
+		expr = random.choice(Algebra.trig)
+		return subRandom(expr, low=2, high=7)
+	elif n == 2:
+		expr = random.choice(Algebra.trig)
+		return subRandom(expr, low=2, high=7, negatives=True)
+
+
 def fraction_add(**kwargs):
-	n = kwargs.get('n')
+	"""
+	8/6 + 10/4 = 23/6
+	"""
+	n = kwargs.get('difficulty', 1)
 
-	expr = Fractions.addition[0]
+	# note: if sub in a constant of 1, then latex breaks for some reason
+	if n == 1:
+		expr = Fractions.addition[0]
+		return subRandom(expr, low=2, high=7)
+	elif n == 2:
+		expr = Fractions.addition[0]
+		return subRandom(expr, low=2, high=12)
+	elif n == 3:
+		expr = Fractions.addition[1]
+		return subRandom(expr, low=2, high=7)
+	else:
+		expr = Fractions.addition[1]
+		return subRandom(expr, low=2, high=12)
 
-	if type(n) is int:
-		if n < len(Fractions.addition):
-			expr = Fractions.addition[n]
-		else:
-			expr = -1
+def fraction_mixed(**kwargs):
+	"""
 
-	return subRandom(expr)
-	# return subRandom(Fractions.addition[0])
+	"""
+	n = kwargs.get('difficulty', 1)
+
+	all_expr = Fractions.addition + Fractions.mixed + Fractions.subtraction
+	expr = random.choice(all_expr)
+
+	if n == 1:
+		return subRandom(expr, low=2, high=7, negatives=True)
+	else:
+		return subRandom(expr, low=2, high=12, negatives=True)
 
 def subRandom(expr, **kwargs):
-	eval = kwargs.get('evaluate', False)
+	doEval = kwargs.get('evaluate', False)
 	low = kwargs.get('low', 1)
 	high = kwargs.get('high', 10)
+
+	assert(type(expr) != type(list))
 
 	# make constants unique if possible
 	if len(Algebra.constants) >= high - low + 1:
 		randomValues = [random.randint(low, high) for _ in range(len(Algebra.constants))]
 	else:
 		randomValues = random.sample(range(low, high), len(Algebra.constants))
+
+	if kwargs.get('negatives', False):
+		for i, val in enumerate(randomValues):
+			if random.randint(0,1):
+				randomValues[i] *= -1
 
 	substitutions = zip(
 		Algebra.constants,
@@ -390,8 +497,7 @@ def subRandom(expr, **kwargs):
 	# return expr.subs(substitutions, evaluate=False)
 	# if type(expr) is not int:
 	for old, new in substitutions:
-		with evaluate(eval):
+		with evaluate(doEval):
 			expr = expr.replace(old, new)
 
 	return expr
-

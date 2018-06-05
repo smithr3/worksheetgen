@@ -4,7 +4,7 @@
 Command line tool that uses main.py to generate math worksheets.
 """
 
-from subprocess import check_output, Popen
+from subprocess import Popen
 from sys import argv
 from ConfigParser import SafeConfigParser
 from main import *
@@ -19,13 +19,15 @@ print cfg.get('main', 'student')
 sections = []
 
 for sect in cfg.sections():
-	if sect == 'main':
+	if sect == 'main': # only sect that doesn't have questions
 		continue
-	print sect
 	questions = []
 	for i in range(cfg.getint(sect, 'questions')):
 		questions.append(
-			Question('eval', q=algebra_simplify(n=0)),
+			Question(
+				question=cfg.get(sect, 'type'),
+				difficulty=cfg.getint(sect, 'difficulty'),
+			),
 		)
 	sections.append(
 		Section(
@@ -36,11 +38,11 @@ for sect in cfg.sections():
 
 worksheet = Worksheet(
 	cfg.get('main', 'student'),
-	lesson = 12,
+	lesson = cfg.getint('main', 'lesson'),
 	sections=sections,
 )
 
-fname = cfg.get('main', 'title')
+fname = 'Lesson {} Homework'.format(cfg.getint('main', 'lesson'))
 
 # delete previous
 os.chdir("generated/")

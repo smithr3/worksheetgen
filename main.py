@@ -10,6 +10,8 @@ __author__ = 'Robert'
 import random
 from sympy import *
 
+# todo https://tex.stackexchange.com/questions/333448/margin-notes-arent-next-to-text
+
 class Worksheet(object):
 	fileHeader = \
 r"""
@@ -72,6 +74,7 @@ r"""
 
 	def __init__(self, heading, **kwargs):
 		self.questions = kwargs.get('questions')
+		random.shuffle(self.questions)
 		self.desc = kwargs.get('desc','')
 		self.heading = heading
 
@@ -79,7 +82,7 @@ r"""
 		answersOnly = kwargs.get('answersOnly', False)
 
 		latex = Section.section_start\
-			.replace('COL', '2')\
+			.replace('COL', '3')\
 			.replace('HEADING', self.heading)\
 			.replace(r'\noindent TEXT', self.desc)
 
@@ -104,21 +107,24 @@ class Question(object):
 		self.complexity = 12 # complexity in terms of depth of expression tree
 		self.fn = None
 
-		eval = ['fraction_add', 'fraction_mixed']
-		collect = ['algebra_collect']
-		expand = ['algebra_expand']
-		factorise = ['algebra_factorise']
-		solve = ['algebra_randeq', 'algebra_trig']
+		q_eval = ['fraction_add', 'fraction_mixed']
+		q_collect = ['algebra_collect']
+		q_expand = ['algebra_expand']
+		q_factorise = ['algebra_factorise']
+		q_simplify = ['algebra_simplify']
+		q_solve = ['algebra_randeq', 'algebra_trig', 'algebra_solve']
 		self.sym_q = globals()[question](difficulty=difficulty)
-		if question in eval:
+		if question in q_eval:
 			self.qtype = 'eval'
-		elif question in collect:
+		elif question in q_collect:
 			self.qtype = 'collect'
-		elif question in expand:
+		elif question in q_expand:
 			self.qtype = 'expand'
-		elif question in factorise:
+		elif question in q_factorise:
 			self.qtype = 'factorise'
-		elif question in solve:
+		elif question in q_simplify:
+			self.qtype = 'simplify'
+		elif question in q_solve:
 			self.qtype = 'solve'
 		else:
 			raise NotImplementedError
@@ -138,11 +144,20 @@ class Question(object):
 		if self.qtype == 'solve':
 			soln = solve(self.sym_q, self.var)
 			print 'soln', soln, type(soln)
-			if len(soln) == 1:
+			if len(soln) == 0:
+				self.sym_a = None
+			elif len(soln) == 1:
 				self.sym_a = Eq(
 					self.var,
 					soln[0],
 				)
+			elif len(soln) == 2:
+				self.sym_a = [
+					Eq(self.var, soln[0]),
+					Eq(self.var, soln[1]),
+				]
+			else:
+				raise NotImplementedError
 		elif self.qtype == 'collect':
 			w = Wild('w') # collect all like symbols
 			self.sym_a = collect(self.sym_q, w)
@@ -150,6 +165,8 @@ class Question(object):
 			self.sym_a = expand(self.sym_q)
 		elif self.qtype == 'factorise':
 			self.sym_a = factor(self.sym_q)
+		elif self.qtype == 'simplify':
+			self.sym_a = simplify(self.sym_q)
 		elif self.qtype == 'eval':
 			self.sym_a = self.sym_q.doit()
 		print 'A:', self.sym_a, latex(self.sym_a)
@@ -159,7 +176,10 @@ class Question(object):
 		answerOnly = kwargs.get('answerOnly', False)
 
 		if answerOnly:
-			return latex(self.sym_a)
+			if type(self.sym_a) is list:
+				return '{}, \ {}'.format(latex(self.sym_a[0]), latex(self.sym_a[1]))
+			else:
+				return latex(self.sym_a)
 		else:
 			if self.qtype == 'progress':
 				return self.progressRender()
@@ -237,6 +257,28 @@ class Algebra(object):
 	trig = [
 		Eq(sin(x), 1/y),
 	]
+	# SIMPLE ##########################################
+	simple = [
+		x + a,
+		x - a,
+		a - x,
+		a*x,
+		x/a,
+		a/x,
+	]
+	simple2 = [
+		a*x + b,
+		x/a + b,
+		a/x + b,
+		b + a*x,
+		b + x/a,
+		b + a/x,
+	]
+	# SIMPLIFY MID ALGEBRA ##################################
+	alg_simplify = [
+		a*(x+b)/c,
+		a*(x+b) - b,
+	]
 	# REARRANGE ##########################################
 	rearrange = [
 		Eq(f, a),
@@ -299,15 +341,14 @@ def algebra_simplify(**kwargs):
 	l   logarithm
 	c   collecting
 	"""
+	n = kwargs.get('difficulty', 1)
 
-	n = kwargs.get('n') # nth version of question
-
-	if type(n) is int:
-		if n < len(Algebra.indexlaws):
-			expr = Algebra.indexlaws[n]
-		else:
-			return -1
-	return subRandom(expr, low=2, high=6)
+	if n == 1:
+		expr = random.choice(Algebra.alg_simplify)
+		return subRandom(expr, low=2, high=7, negatives=True)
+	elif n == 2:
+		expr = random.choice(Algebra.alg_simplify)
+		return subRandom(expr, low=2, high=7, negatives=True)
 
 def algebra_rearrange(**kwargs):
 	n = kwargs.get('n')
@@ -427,6 +468,55 @@ def algebra_trig(**kwargs):
 	elif n == 2:
 		expr = random.choice(Algebra.trig)
 		return subRandom(expr, low=2, high=7, negatives=True)
+
+def algebra_solve(**kwargs):
+	"""
+	Solve for x.
+	"""
+	n = kwargs.get('difficulty', 1)
+
+	if n == 1:
+		left = random.choice(Algebra.simple)
+		right = Algebra.a
+		return Eq(
+			subRandom(left, low=1, high=7),
+			subRandom(right, low=0, high=7),
+		)
+	elif n == 2:
+		left = random.choice(Algebra.simple2)
+		right = Algebra.a
+		return Eq(
+			subRandom(left, low=1, high=7, negatives=True),
+			subRandom(right, low=0, high=7, negatives=True),
+		)
+	elif n == 3:
+		left = random.choice(Algebra.expand_x)
+		right = 0
+		return Eq(
+			subRandom(left, low=2, high=7),
+			right,
+		)
+	elif n == 4:
+		left = random.choice(Algebra.expand_x)
+		right = 0
+		return Eq(
+			subRandom(left, low=2, high=7),
+			right,
+		)
+	elif n == 5:
+		left = random.choice(Algebra.factorise_quad)
+		right = 0
+		return Eq(
+			subRandom(left, low=2, high=7, negatives=True),
+			right,
+		)
+	elif n == 6:
+		left = random.choice(Algebra.factorise_quad)
+		right = 0
+		return Eq(
+			expand(subRandom(left, low=2, high=7)),
+			right,
+		)
 
 
 def fraction_add(**kwargs):

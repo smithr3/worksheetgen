@@ -22,13 +22,15 @@ for sect in cfg.sections():
 	if sect == 'main': # only sect that doesn't have questions
 		continue
 	questions = []
-	for i in range(cfg.getint(sect, 'questions')):
-		questions.append(
-			Question(
-				question=cfg.get(sect, 'type'),
-				difficulty=cfg.getint(sect, 'difficulty'),
-			),
-		)
+	d = [int(x) for x in cfg.get(sect, 'difficulty').split(' ')]
+	for di in d:
+		for i in range(cfg.getint(sect, 'questions')):
+			questions.append(
+				Question(
+					question=cfg.get(sect, 'type'),
+					difficulty=di,
+				),
+			)
 	sections.append(
 		Section(
 			cfg.get(sect, 'name'),
@@ -69,5 +71,5 @@ if not returncode == 0:
 	raise Exception('it broke')
 
 os.remove('{}.log'.format(fname))
-os.remove('{}.tex'.format(fname))
+# os.remove('{}.tex'.format(fname))
 os.remove('{}.aux'.format(fname))

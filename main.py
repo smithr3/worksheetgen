@@ -17,9 +17,9 @@ class Worksheet(object):
 r"""
 \documentclass[fleqn]{exam}
 \usepackage{amsmath,amsthm,amssymb}
-\usepackage{multicol}
+\usepackage{tasks}
 \usepackage{enumitem}
-\rhead{Robert Smith}
+\rhead{Robert Smith - \today}
 \lhead{Student Name - Lesson X Homework}
 \begin{document}
 """
@@ -63,13 +63,11 @@ class Section(object):
 r"""
 \section{HEADING}
 \noindent TEXT
-\begin{multicols}{COL}
-\begin{enumerate}[label=(\alph*)]
+\begin{tasks}(COL)
 """
 	section_end = \
 r"""
-\end{enumerate}
-\end{multicols}
+\end{tasks}
 """
 
 	def __init__(self, heading, **kwargs):
@@ -88,11 +86,11 @@ r"""
 
 		if answersOnly:
 			for q in self.questions:
-				latex += r'\item $ \displaystyle ' + q.generateLatex(answerOnly=True) + '$\n'
+				latex += r'\task $ \displaystyle ' + q.generateLatex(answerOnly=True) + '$\n'
 			latex += Section.section_end
 		else:
 			for q in self.questions:
-				latex += r'\item $ \displaystyle ' + q.generateLatex() + '$\n'
+				latex += r'\task $ \displaystyle ' + q.generateLatex() + '$\n'
 			latex += Section.section_end
 		return latex
 
@@ -160,7 +158,7 @@ class Question(object):
 				raise NotImplementedError
 		elif self.qtype == 'collect':
 			w = Wild('w') # collect all like symbols
-			self.sym_a = collect(self.sym_q, w)
+			self.sym_a = expand(collect(self.sym_q, w))
 		elif self.qtype == 'expand':
 			self.sym_a = expand(self.sym_q)
 		elif self.qtype == 'factorise':

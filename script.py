@@ -12,7 +12,8 @@ import os
 import time
 
 cfg = SafeConfigParser()
-cfg.read('cfg/{}.cfg'.format(argv[1]))
+# cfg.read('cfg/{}.cfg'.format(argv[1]))
+cfg.read('cfg/{}.cfg'.format('otis_basics'))
 
 print cfg.get('main', 'student')
 
@@ -40,11 +41,11 @@ for sect in cfg.sections():
 
 worksheet = Worksheet(
 	cfg.get('main', 'student'),
-	lesson = cfg.getint('main', 'lesson'),
+	title=cfg.get('main', 'title'),
 	sections=sections,
 )
 
-fname = 'Lesson {} Homework'.format(cfg.getint('main', 'lesson'))
+fname = cfg.get('main', 'title')
 
 # delete previous
 os.chdir("generated/")

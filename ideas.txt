@@ -23,3 +23,96 @@ class Fraction(Question)
 
 	def getNQuestions(self, n)
 		return list
+
+Improvements:
+get rid of number range
+keep +/- numbers tho - although what to do when only want -'ve numbers? are there any of those times?
+clean up how questions and latex are defined
+document questions
+
+Probably only need input(), but here are some libraries
+https://github.com/peterbrittain/asciimatics
+http://urwid.org/
+https://github.com/kennethreitz/clint
+
+https://docs.sympy.org/latest/tutorial/printing.html
+
+Command line interface
+-------------------------------
+
+Student:
+1) Otis Coyle, 2) Brandan Wong, 3) Hayden Mckenzie
+or type a new name
+** program remembers name, and sorts by number of times used
+>1
+
+Lesson number:
+>16
+
+Now we'll create the questions.
+
+Homogenous section?
+y/n
+>y
+* this probably isn't useful like I imagined, as long as you can increase/decrease difficulty whilst generating questions
+
+Topic?
+1) Fractions, 2)Algebra, 3) Index laws
+>2
+
+Sub-topic?
+1) Collecting, 2)Simplifying, 3)Expanding, 4)Factorising, 5)Solving
+>5
+
+How many questions?
+>8
+
+Starting problem: simple equations with multiple x's, requiring collecting
+
+Question 1:
+2x = 3 - 3x
+Ans: x=3/5
+(use the numpad!)
+* 0 - accept
+* . - regenerate
+* + - increase difficulty
+* - - decrease difficulty
+>-
+
+Changed to: simple equations with one x
+
+Question 1:
+2x - 1 = 0
+Ans: x=1/2
+>.
+
+Question 1:
+x + 3 = 0
+Ans: x=1/2
+>0
+
+Question 2:
+3x = 3
+Ans: x=1
+>0
+
+...
+
+Finished section 1
+x + 3 = 0
+3x = 3
+...
+Name:
+1) Solve, 2) Algebra
+or type your own
+>1
+
+New section?
+y/n
+0/.
+>.
+
+Running regex to clean latex...
+Saving pdf...
+Deleting extra files...
+Done!

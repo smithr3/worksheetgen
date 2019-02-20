@@ -20,7 +20,7 @@ r"""
 \usepackage{tasks}
 \usepackage{enumitem}
 \rhead{Robert Smith - \today}
-\lhead{Student Name - Lesson X Homework}
+\lhead{Student Name - X}
 \begin{document}
 """
 	answerPage = \
@@ -37,7 +37,7 @@ r"""
 	def __init__(self, student, **kwargs):
 		self.sections = kwargs.get('sections')
 		self.student = student
-		self.lessonN = kwargs.get('lesson', 1)
+		self.title = kwargs.get('title', 'Worksheet')
 
 		if self.sections is None:
 			self.sections = [
@@ -48,7 +48,7 @@ r"""
 	def generateLatex(self):
 		latex = ''
 		latex += Worksheet.fileHeader\
-			.replace('X', str(self.lessonN))\
+			.replace('X', str(self.title))\
 			.replace('Student Name', self.student)
 		for section in self.sections:
 			latex += section.generateLatex()
@@ -80,7 +80,7 @@ r"""
 		answersOnly = kwargs.get('answersOnly', False)
 
 		latex = Section.section_start\
-			.replace('COL', '3')\
+			.replace('COL', '4')\
 			.replace('HEADING', self.heading)\
 			.replace(r'\noindent TEXT', self.desc)
 
@@ -109,7 +109,7 @@ class Question(object):
 		q_collect = ['algebra_collect']
 		q_expand = ['algebra_expand']
 		q_factorise = ['algebra_factorise']
-		q_simplify = ['algebra_simplify']
+		q_simplify = ['algebra_simplify','algebra_expand_simp', 'index_laws']
 		q_solve = ['algebra_randeq', 'algebra_trig', 'algebra_solve']
 		self.sym_q = globals()[question](difficulty=difficulty)
 		if question in q_eval:
@@ -164,7 +164,7 @@ class Question(object):
 		elif self.qtype == 'factorise':
 			self.sym_a = factor(self.sym_q)
 		elif self.qtype == 'simplify':
-			self.sym_a = simplify(self.sym_q)
+			self.sym_a = simplify(expand(self.sym_q))
 		elif self.qtype == 'eval':
 			self.sym_a = self.sym_q.doit()
 		print 'A:', self.sym_a, latex(self.sym_a)
@@ -210,8 +210,8 @@ class Question(object):
 class Algebra(object):
 	variables = symbols('x y z')
 	x, y, z = variables
-	constants = symbols('a b c d e', real=True)
-	a, b, c, d, e = constants
+	constants = symbols('a b c d e i j k l m n', real=True)
+	a, b, c, d, e, i, j, k, l, m, n = constants
 	functions = symbols('f g h')
 	f, g, h = functions
 	# COLLECT ###############################################
@@ -231,6 +231,8 @@ class Algebra(object):
 		a*(x+b),
 		x*(a+x),
 		a*x*(a+b*x),
+		a*(a+b*x)*(x+c),
+		a*(a+b*x)*(c*x+d),
 	]
 	expand_xy = [
 		a*(x+y),
@@ -240,7 +242,16 @@ class Algebra(object):
 		a*y*(b*x+c*y),
 	]
 	expand = expand_x + expand_xy
+	# EXPAND and SIMPLIFY ################################
+	expand_simp_x = [
+		a*(x+b) + c,
+		(x+b)**2 + c,
+		a*(x+b)**2 + c,
+		x*(x+b) + c,
+		(a*x+b)*(x+c) + c,
+	]
 	# FACTORISE ##########################################
+	# todo grouping
 	factorise_hcf = [
 		a*(x+b*y),
 		x*(a+b*y),
@@ -273,6 +284,7 @@ class Algebra(object):
 		b + a/x,
 	]
 	# SIMPLIFY MID ALGEBRA ##################################
+	# todo merge with expand and simplify
 	alg_simplify = [
 		a*(x+b)/c,
 		a*(x+b) - b,
@@ -287,12 +299,13 @@ class Algebra(object):
 		Eq(f/a+b*y, c),
 		Eq(a/f+b*y, c*y),
 	]
-	# INDEXLAWS ############################################
+	# INDEX LAWS ############################################
 	indexlaws = [
 		x**a * x**b,
 		x**a / x**b,
 		(x**a * y**b) / x**a,
 		x**a * (x**b)**c,
+		# (x**a * y**b) / x**c / (x**d * y**e) / x**i,
 	]
 	#######################################################
 	all_expr = collect + expand
@@ -304,16 +317,26 @@ class Fractions(object):
 	addition = [
 		1/a + 1/b,
 		a/b + c/d,
+		a + c/d,
 		# Rational(a,b) + Rational(c,d),
 		# Frac(a,b) + Frac(c,d),
 	]
 	subtraction = [
 		1/a - 1/b,
 		a/b - c/d,
+		a - c/d,
+		a/b - c,
 	]
-	mixed = [
-		a + 1/b,
-		a + b/c,
+	multiply = [
+		1/a * 1/b,
+		a/b * c/d,
+		a * c/d,
+	]
+	divide = [
+		1/a / 1/b,
+		a/b / c/d,
+		a / c/d,
+		a/b / c,
 	]
 
 def algebra_collect(**kwargs):
@@ -346,6 +369,16 @@ def algebra_simplify(**kwargs):
 		return subRandom(expr, low=2, high=7, negatives=True)
 	elif n == 2:
 		expr = random.choice(Algebra.alg_simplify)
+		return subRandom(expr, low=2, high=7, negatives=True)
+
+def index_laws(**kwargs):
+	"""
+	Simplify using index laws
+	"""
+	n = kwargs.get('difficulty', 1)
+
+	if n == 1:
+		expr = UnevaluatedExpr(random.choice(Algebra.indexlaws))
 		return subRandom(expr, low=2, high=7, negatives=True)
 
 def algebra_rearrange(**kwargs):
@@ -435,6 +468,19 @@ def algebra_expand(**kwargs):
 		expr = random.choice(Algebra.expand_xy)
 		return subRandom(expr, low=2, high=9, negatives=True)
 
+def algebra_expand_simp(**kwargs):
+	"""
+	2 (x + 4) + 2 = 2x + 10
+	"""
+	n = kwargs.get('difficulty', 1)
+
+	if n == 1:
+		expr = random.choice(Algebra.expand_simp_x[:2])
+		return subRandom(expr, low=2, high=7)
+	elif n == 2:
+		expr = random.choice(Algebra.expand_simp_x)
+		return subRandom(expr, low=2, high=7, negatives=True)
+
 def algebra_factorise(**kwargs):
 	"""
 	Questions created by first expanding a good answer.
@@ -494,7 +540,7 @@ def algebra_solve(**kwargs):
 			subRandom(left, low=2, high=7),
 			right,
 		)
-	elif n == 4:
+	elif n == 4: # todo this is dup of 3?
 		left = random.choice(Algebra.expand_x)
 		right = 0
 		return Eq(
@@ -510,6 +556,14 @@ def algebra_solve(**kwargs):
 		)
 	elif n == 6:
 		left = random.choice(Algebra.factorise_quad)
+		right = 0
+		return Eq(
+			expand(subRandom(left, low=2, high=7)),
+			right,
+		)
+	elif n == 7:
+		# todo want (x^2+4x+4)(x+1)(2x-3)=0
+		left = UnevaluatedExpr((random.choice(Algebra.factorise_quad))*(random.choice(Algebra.factorise_quad)))
 		right = 0
 		return Eq(
 			expand(subRandom(left, low=2, high=7)),
@@ -539,11 +593,11 @@ def fraction_add(**kwargs):
 
 def fraction_mixed(**kwargs):
 	"""
-
+	Add, sub, div and mult with proper, improper and mixed fractions
 	"""
 	n = kwargs.get('difficulty', 1)
 
-	all_expr = Fractions.addition + Fractions.mixed + Fractions.subtraction
+	all_expr = Fractions.addition + Fractions.subtraction + Fractions.multiply + Fractions.divide
 	expr = random.choice(all_expr)
 
 	if n == 1:

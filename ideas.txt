@@ -51,7 +51,7 @@ Lesson number:
 
 Now we'll create the questions.
 
-Homogenous section?
+Homogeneous section?
 y/n
 >y
 * this probably isn't useful like I imagined, as long as you can increase/decrease difficulty whilst generating questions

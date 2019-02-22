@@ -16,6 +16,12 @@ DOC_START = r"""
 
 \renewcommand\thesubsection{Q\arabic{subsection}}
 
+\newcommand{\qbreak}{%
+\noindent\makebox[\linewidth]{\rule{\textwidth}{0.4pt}}%
+\setcounter{section}{0}%
+\setcounter{subsection}{0}%
+}
+
 \rhead{Robert Smith - \today}
 %\lhead{Student Name - X}
 
@@ -31,7 +37,7 @@ SECTION_END = r"""
 """
 ANSWERS_PAGE = r"""
 \newpage
-\setcounter{section}{0}
+\setcounter{subsection}{0}
 \section*{Answers}
 """
 DOC_END = r"""
@@ -45,25 +51,35 @@ class Worksheet:
 		self.latex = ''
 		self.sections = []
 
-	def addSection(self, name, qs, ans):
-		self.sections.append(Section(name, qs, ans))
+	def addSection(self, name, qs, ans, cols, rule):
+		self.sections.append(Section(name, qs, ans, cols, rule))
 
 	def render(self):
 		self.add(DOC_START)
+		# questions
 		for section in self.sections:
+			if section.rule:
+				self.add('\qbreak')
 			self.add(
 				SECTION_START.replace('HEADING', section.name).replace('COL', str(section.cols))
 			)
+			tasks = []
 			for q in section.qs:
-				self.add(r'\task ' + q)
+				tasks.append(r'\task ' + q)
+			self.add('\n'.join(tasks))
 			self.add(SECTION_END)
+		# answers
 		self.add(ANSWERS_PAGE)
 		for section in self.sections:
+			if section.rule:
+				self.add('\qbreak')
 			self.add(
 				SECTION_START.replace('HEADING', section.name).replace('COL', str(section.cols))
 			)
+			tasks = []
 			for a in section.ans:
-				self.add(r'\task ' + a)
+				tasks.append(r'\task ' + a)
+			self.add('\n'.join(tasks))
 			self.add(SECTION_END)
 		self.add(DOC_END)
 
@@ -73,9 +89,21 @@ class Worksheet:
 		self.latex += code
 
 	def write(self):
+		os.chdir("generated/")
 		if os.path.isfile('{}.tex'.format(self.fname)):
-			print('Please delete existing generated files')
-			return
+			print('Overwriting existing generated files')
+			for filename in os.listdir('.'):
+				if filename.startswith(self.fname):
+					print('\tdeleted {}'.format(filename))
+					deleted = False
+					while not deleted:
+						try:
+							os.remove(filename)
+						except PermissionError as e:
+							print(e)
+							input("Press Enter to try again.")
+							continue
+						deleted = True
 
 		latex_fh = open(self.fname+'.tex', 'w')
 		latex_fh.write(self.latex)
@@ -95,8 +123,10 @@ class Worksheet:
 
 class Section:
 
-	def __init__(self, name, qs, ans):
+	def __init__(self, name, qs, ans, cols, rule):
+		assert cols is not None
 		self.name = name
 		self.qs = qs
 		self.ans = ans
-		self.cols = 3
+		self.cols = cols
+		self.rule = rule

@@ -5,6 +5,8 @@ Robert
 21/02/2019
 """
 
+import sys
+import msvcrt
 import inspect
 import algebra
 
@@ -29,11 +31,10 @@ def createTopicDict():
 		i = 1
 		text = []
 		tmp = {}
-		for name, obj in inspect.getmembers(algebra):
-			if inspect.isclass(obj):
-				text.append('[{}] {}'.format(i, name))
-				tmp[i] = obj
-				i += 1
+		for name, obj in classesInModule(topic):
+			text.append('[{}] {}'.format(i, name))
+			tmp[i] = obj
+			i += 1
 		tmp['text'] = ' '.join(text)
 		tmp['i'] = i - 1
 		d[topic.NAME] = tmp
@@ -47,7 +48,7 @@ def askTopic(t):
 	while answer is None:
 		print('Topic?')
 		print(t['text'])
-		raw = input('>')
+		raw = getch()
 		try:
 			raw = int(raw)
 			if raw in range(t['i']+1):
@@ -56,7 +57,7 @@ def askTopic(t):
 			pass
 
 	answer = t[answer]
-	print('You chose {}.\n'.format(answer))
+	# print('You chose {}.\n'.format(answer))
 	return answer
 
 def askSubTopic(t, d):
@@ -64,7 +65,7 @@ def askSubTopic(t, d):
 	while answer is None:
 		print('Subtopic?')
 		print(d[t]['text'])
-		raw = input('>')
+		raw = getch()
 		try:
 			raw = int(raw)
 			if raw in range(d[t]['i']+1):
@@ -73,60 +74,132 @@ def askSubTopic(t, d):
 			pass
 
 	answer = d[t][answer]
-	print('You chose {}.\n'.format(answer))
+	# print('You chose {}.\n'.format(answer))
 	return answer
 
-def askNQuestions():
+def askNSections():
 	answer = None
 	while answer is None:
-		print('Number of questions?')
-		raw = input('>')
+		print('How many sections?')
+		raw = getch()
+		try:
+			raw = int(raw)
+			if raw in range(10):
+				answer = raw
+		except ValueError:
+			pass
+	return answer
+
+def askNQuestions(nCols):
+	answer = None
+	while answer is None:
+		print('Number of questions? (cols is {})'.format(nCols))
+		raw = getInput()
 		try:
 			raw = int(raw)
 			if raw in range(26):
 				answer = raw
 		except ValueError:
 			pass
-	print('You chose {} questions.\n'.format(answer))
+	# print('You chose {} questions.\n'.format(answer))
 	return answer
 
-def makeQuestion(questionClass, n, total):
+def makeQuestion(question, n, total, allQuestions):
 	satisfied = False
 	lq, la = None, None
-	question = questionClass() # instantiate class, maybe make static class?
+	# question = questionClass() # instantiate class, maybe make static class?
 	# qFn = getFunction(topic, subtopic)
 	while not satisfied:
 		print('New question ({}/{}):'.format(n, total))
 		q, a, lq, la = question.generate()
-		print('{}\nAns: {}'.format(q, a))
-		answer = input('>')
+		while lq in allQuestions: # prevent duplicates
+			q, a, lq, la = question.generate()
+		print('{}\nA:\n{}'.format(q, a))
+		answer = getch()
 		if answer == '+':
-			q.incrementDifficulty()
+			question.incrementDifficulty()
+			printDifficulty(question)
 		elif answer == '-':
-			q.decrementDifficulty()
+			question.decrementDifficulty()
+			printDifficulty(question)
 		elif answer == '0':
 			satisfied = True
 		elif answer == '.':
 			pass
 		else:
+			print(q)
+			print(allQuestions)
 			pass # input not recognised, ignored
 	return lq, la
 
-def askSectionName():
+def printDifficulty(question):
+	print('({}/{}) {}'.format(
+		question.difficulty,
+		question.maxDifficulty,
+		question.description[question.difficulty]
+	))
+
+def askSectionName(question):
 	answer = None
 	while answer is None:
 		print('Section name?')
-		answer = input('>')
-	print('This section will be named "{}".\n'.format(answer))
+		print('[1] {}'.format(question.defaultTitle))
+		raw = getInput()
+		try:
+			raw = int(raw)
+			if raw == 1:
+				answer = question.defaultTitle
+		except ValueError:
+			answer = raw
+	# print('This section will be named "{}".\n'.format(answer))
 	return answer
 
 def askFinished():
 	answer = None
 	while answer is None:
 		print('Finished worksheet?')
-		raw = input('>')
+		raw = getch()
 		if raw in ['y', '0']:
 			answer = True
 		elif raw in ['n', '.']:
 			answer = False
 	return answer
+
+def askRule():
+	answer = None
+	while answer is None:
+		print('Add rule and reset section counter?')
+		raw = getch()
+		if raw in ['y', '0']:
+			answer = True
+		elif raw in ['n', '.']:
+			answer = False
+	return answer
+
+def askNRules():
+	answer = None
+	while answer is None:
+		print('Add rule after every how many sections?')
+		raw = getch()
+		try:
+			raw = int(raw)
+			if raw in range(10):
+				answer = raw
+		except ValueError:
+			pass
+	return answer
+
+def getch():
+	print('>', end='')
+	sys.stdout.flush()
+	bytestring = msvcrt.getch()
+	string = bytestring.decode('utf-8')
+	print(string)
+	return string
+
+def getInput():
+	return input('>')
+
+def classesInModule(module):
+	classes = inspect.getmembers(module, inspect.isclass)
+	return [c for c in classes if c[1].__module__ == module.__name__]

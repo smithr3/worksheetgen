@@ -29,20 +29,16 @@ t, d = createTopicDict()
 # print(t)
 # print(d, '\n')
 
-sheet = Worksheet()
-
 finished = False
 
-# todo fix adding \n in \tasks, possibly fault of add() method
+sheet = Worksheet(askFName())
+useDefaultNames = askUseDefaultNames()
 
-# todo could tidy up and reask this as: single worksheet, or multiple repeating question blocks with rules?
-#   i.e. 2nd part asks how many question blocks, then how many sections per section block
-nSections = askNSections()
 nRules = askNRules()
-
-# todo always use default names?
+nSections = askNSections()
 
 if nRules > 0:
+	nSections *= nRules
 	print('\nCreating presets for the sections in a question block.')
 	sectPresets = {}
 	for i in range(nRules):
@@ -78,15 +74,20 @@ for i in range(nSections):
 		q, a = makeQuestion(question, j+1, nQuestions, qs)
 		qs.append(q)
 		ans.append(a)
-	# todo enable changing questionClass() mid questions, would require taking min cols
+	# todo enable changing questionClass() mid questions, would require taking min of cols
+	# use: mixing solvingLinear with solvingQuadratic
+	# alternative: another class - questionGroup, sets random difficulty for each new question
+	# 	and picks randomly from available question classes
 
 	addRule = False
 	if nRules != 0 and i != 0 and i % nRules == 0:
 		addRule = True
 
-	name = askSectionName(question)
+	if useDefaultNames:
+		name = question.defaultTitle
+	else:
+		name = askSectionName(question)
 	sheet.addSection(name, qs, ans, questionClass.taskColumns, addRule)
 
 sheet.render()
-# print(sheet.latex)
 sheet.write()

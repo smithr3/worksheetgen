@@ -46,8 +46,8 @@ DOC_END = r"""
 
 class Worksheet:
 
-	def __init__(self):
-		self.fname = 'generated'
+	def __init__(self, fname):
+		self.fname = fname
 		self.latex = ''
 		self.sections = []
 
@@ -84,8 +84,6 @@ class Worksheet:
 		self.add(DOC_END)
 
 	def add(self, code):
-		if code[-1] != '\n':
-			code += '\n'
 		self.latex += code
 
 	def write(self):

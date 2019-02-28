@@ -80,7 +80,7 @@ def askSubTopic(t, d):
 def askNSections():
 	answer = None
 	while answer is None:
-		print('How many sections?')
+		print('How many sections (per rule if any)?')
 		raw = getch()
 		try:
 			raw = int(raw)
@@ -127,13 +127,13 @@ def makeQuestion(question, n, total, allQuestions):
 		elif answer == '.':
 			pass
 		else:
-			print(q)
-			print(allQuestions)
+			# print(q)
+			# print(allQuestions)
 			pass # input not recognised, ignored
 	return lq, la
 
 def printDifficulty(question):
-	print('({}/{}) {}'.format(
+	print('\n({}/{}) {}\n'.format(
 		question.difficulty,
 		question.maxDifficulty,
 		question.description[question.difficulty]
@@ -151,6 +151,26 @@ def askSectionName(question):
 				answer = question.defaultTitle
 		except ValueError:
 			answer = raw
+	# print('This section will be named "{}".\n'.format(answer))
+	return answer
+
+def askFName():
+	answer = None
+	while answer is None:
+		print('File name?')
+		answer = getInput()
+	# print('This section will be named "{}".\n'.format(answer))
+	return answer
+
+def askUseDefaultNames():
+	answer = None
+	while answer is None:
+		print('Use default section names?')
+		raw = getch()
+		if raw == '0':
+			answer = True
+		elif raw == '.':
+			answer = False
 	# print('This section will be named "{}".\n'.format(answer))
 	return answer
 
@@ -179,11 +199,11 @@ def askRule():
 def askNRules():
 	answer = None
 	while answer is None:
-		print('Add rule after every how many sections?')
+		print('How many ruled sections?')
 		raw = getch()
 		try:
 			raw = int(raw)
-			if raw in range(10):
+			if raw != 1:
 				answer = raw
 		except ValueError:
 			pass

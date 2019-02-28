@@ -7,7 +7,7 @@ Robert
 
 from base import Question, getPretty
 import random
-from sympy import Eq, symbols, solve, latex
+from sympy import Eq, symbols, solve, latex, evaluate
 
 NAME = 'Algebra'
 
@@ -86,12 +86,12 @@ class SolvingLinear(Question):
 	taskColumns = 4
 
 	def __init__(self):
-		super().__init__(2)
+		super().__init__(4)
 		self.description = {
 			1 : 'One manipulation',
 			2 : 'Two manipulations',
-			# 3 : 'Requiring collection (one side)',
-			# 4 : 'Requiring collection (both sides)'
+			3 : 'Requiring collection once',
+			4 : 'Requiring collection twice'
 		}
 		self.defaultTitle = 'Solving'
 
@@ -122,12 +122,54 @@ class SolvingLinear(Question):
 				Eq(x/a + b, c),
 				Eq(x/a - b, c),
 			])
-			# todo flip sides of equations
+			# todo flip sides of equations randomly
 			eqn = eqn.subs([
 				(a, random.randint(2, 10)),
 				(b, random.randint(1, 10)),
 				(c, random.randint(0, 10)),
 			])
+			soln = Eq(x, solve(eqn, x)[0])
+			Q = getPretty(eqn)
+			A = getPretty(soln)
+			LQ = '$\displaystyle {}$'.format(latex(eqn))
+			LA = '$\displaystyle {}$'.format(latex(soln))
+			return Q, A, LQ, LA
+		elif self.difficulty == 3:
+			eqn = random.choice([
+				Eq(a*x + b + c*x, d),
+				Eq(a*x + b, d + c*x),
+			])
+			# todo random negative numbers without including 0
+			substitutions = [
+				(a, random.randint(-10, 10)),
+				(b, random.randint(-10, 10)),
+				(c, random.randint(-10, 10)),
+				(d, random.randint(-10, 10)),
+			]
+			for old, new in substitutions:
+				with evaluate(False):
+					eqn = eqn.replace(old, new)
+			soln = Eq(x, solve(eqn, x)[0])
+			Q = getPretty(eqn)
+			A = getPretty(soln)
+			LQ = '$\displaystyle {}$'.format(latex(eqn))
+			LA = '$\displaystyle {}$'.format(latex(soln))
+			return Q, A, LQ, LA
+		elif self.difficulty == 4:
+			eqn = random.choice([
+				Eq(a*x + b + c*x, d + e*x),
+			])
+			# todo random negative numbers without including 0
+			substitutions = [
+				(a, random.randint(-10, 10)),
+				(b, random.randint(-10, 10)),
+				(c, random.randint(-10, 10)),
+				(d, random.randint(-10, 10)),
+				(e, random.randint(-10, 10)),
+			]
+			for old, new in substitutions:
+				with evaluate(False):
+					eqn = eqn.replace(old, new)
 			soln = Eq(x, solve(eqn, x)[0])
 			Q = getPretty(eqn)
 			A = getPretty(soln)

@@ -23,9 +23,10 @@ class SimpleManipulations(Question):
 		sin(x)		ans: arcsin
 	"""
 	taskColumns = 5
+	maxDifficulty = 2
 
-	def __init__(self):
-		super().__init__(2)
+	def __init__(self, defaultDifficulty=1):
+		super().__init__(defaultDifficulty, self.maxDifficulty)
 		self.description = {
 			1 : 'One manipulation',
 			2 : 'Two manipulations'
@@ -84,9 +85,10 @@ class SolvingLinear(Question):
 		ax + 3k = 8
 	"""
 	taskColumns = 4
+	maxDifficulty = 4
 
-	def __init__(self):
-		super().__init__(4)
+	def __init__(self, defaultDifficulty=1):
+		super().__init__(defaultDifficulty, self.maxDifficulty)
 		self.description = {
 			1 : 'One manipulation',
 			2 : 'Two manipulations',
@@ -128,7 +130,10 @@ class SolvingLinear(Question):
 				(b, random.randint(1, 10)),
 				(c, random.randint(0, 10)),
 			])
+			# todo my own function that uses try/except to find no solutions
 			soln = Eq(x, solve(eqn, x)[0])
+			# todo Q, A = getPretty(eqn, soln)
+			# todo LQ, LA = getLatex(eqn, soln)
 			Q = getPretty(eqn)
 			A = getPretty(soln)
 			LQ = '$\displaystyle {}$'.format(latex(eqn))
@@ -149,7 +154,11 @@ class SolvingLinear(Question):
 			for old, new in substitutions:
 				with evaluate(False):
 					eqn = eqn.replace(old, new)
-			soln = Eq(x, solve(eqn, x)[0])
+			try:
+				soln = Eq(x, solve(eqn, x)[0])
+			except IndexError:
+				# no solution - lines are parallel
+				soln = 'No solution'
 			Q = getPretty(eqn)
 			A = getPretty(soln)
 			LQ = '$\displaystyle {}$'.format(latex(eqn))
@@ -170,9 +179,163 @@ class SolvingLinear(Question):
 			for old, new in substitutions:
 				with evaluate(False):
 					eqn = eqn.replace(old, new)
-			soln = Eq(x, solve(eqn, x)[0])
+			try:
+				soln = Eq(x, solve(eqn, x)[0])
+			except IndexError:
+				# no solution - lines are parallel
+				soln = 'No solution'
 			Q = getPretty(eqn)
 			A = getPretty(soln)
 			LQ = '$\displaystyle {}$'.format(latex(eqn))
 			LA = '$\displaystyle {}$'.format(latex(soln))
+			return Q, A, LQ, LA
+
+class SolvingAlgebraicFractions(Question):
+	"""
+	Solving with fractions:
+		(x + 3) / 2 = 1
+		(4 - x) / 4 = x
+		(2x + 1) / x = 3
+	Possible extensions:
+		(x + 3) / 2 = (2x - 1) / 3
+		(x + 3) / 2 = (2x - 1) / 3x
+	"""
+	# todo improve display of fractions, keeps simplifying when I don't want it to - may need to explicity define latex
+	taskColumns = 4
+	maxDifficulty = 3
+
+	def __init__(self, defaultDifficulty=1):
+		super().__init__(defaultDifficulty, self.maxDifficulty)
+		self.description = {
+			1 : 'One x',
+			2 : 'x on RHS',
+			3 : 'x in numerator and denominator',
+		}
+		self.defaultTitle = 'Solving with Fractions'
+
+	def generate(self):
+		x = symbols('x')
+		a, b, c, d, e, f = symbols('a b c d e f')
+		if self.difficulty == 1:
+			eqn = random.choice([
+				Eq((a*x + b)/c, d),
+				Eq((a*x - b)/c, d),
+				Eq((a*x + b)/-c, d),
+			])
+			substitutions = [
+				(a, random.randint(2, 10)),
+				(b, random.randint(1, 10)),
+				(c, random.randint(2, 10)),
+				(d, random.randint(2, 5)),
+			]
+			for old, new in substitutions:
+				with evaluate(False):
+					eqn = eqn.replace(old, new)
+			try:
+				soln = Eq(x, solve(eqn, x)[0])
+			except IndexError:
+				# no solution
+				soln = 'No solution'
+			Q = getPretty(eqn)
+			A = getPretty(soln)
+			LQ = '$\displaystyle {}$'.format(latex(eqn))
+			LA = '$\displaystyle {}$'.format(latex(soln))
+			return Q, A, LQ, LA
+		elif self.difficulty == 2:
+			eqn = random.choice([
+				Eq((a*x + b)/c, x),
+				Eq((a*x - b)/c, d*x),
+				Eq((a*x + b)/-c, d*x),
+				# Eq((b - a*x)/c, d*x),
+			])
+			substitutions = [
+				(a, random.randint(2, 10)),
+				(b, random.randint(1, 10)),
+				(c, random.randint(2, 10)),
+				(d, random.randint(2, 5)),
+			]
+			for old, new in substitutions:
+				with evaluate(False):
+					eqn = eqn.replace(old, new)
+			try:
+				soln = Eq(x, solve(eqn, x)[0])
+			except IndexError:
+				# no solution
+				soln = 'No solution'
+			Q = getPretty(eqn)
+			A = getPretty(soln)
+			LQ = '$\displaystyle {}$'.format(latex(eqn))
+			LA = '$\displaystyle {}$'.format(latex(soln))
+			return Q, A, LQ, LA
+		elif self.difficulty == 3:
+			eqn = random.choice([
+				Eq((a*x + b)/(c*x), d),
+				Eq((a*x + b)/(c*x), -d),
+				# Eq((b - a*x)/(c*x), d),
+				Eq((a*x + b)/(-c*x), -d),
+			])
+			substitutions = [
+				(a, random.randint(2, 10)),
+				(b, random.randint(1, 10)),
+				(c, random.randint(2, 10)),
+				(d, random.randint(2, 5)),
+			]
+			for old, new in substitutions:
+				with evaluate(False):
+					eqn = eqn.replace(old, new)
+			try:
+				soln = Eq(x, solve(eqn, x)[0])
+			except IndexError:
+				# no solution
+				soln = 'No solution'
+			Q = getPretty(eqn)
+			A = getPretty(soln)
+			LQ = '$\displaystyle {}$'.format(latex(eqn))
+			LA = '$\displaystyle {}$'.format(latex(soln))
+			return Q, A, LQ, LA
+
+class SolvingNullFactor(Question):
+	"""
+	Solving with null factor law:
+		x(x+1) = 0
+		(x + 1)(x - 3) = 0
+		(x + 3)(y - 2)(z - 1) = 0
+	Possible extensions:
+		expand, then factorise again
+		(x + 1)(x - 3) + 2 = 0
+		(x + 1)(x - 3) = 4x
+	"""
+	taskColumns = 4
+	maxDifficulty = 3
+
+	def __init__(self, defaultDifficulty=1):
+		super().__init__(defaultDifficulty, self.maxDifficulty)
+		self.description = {
+			1 : 'One x=0',
+			2 : 'Two sets of brackets',
+			3 : '3 variables, 3 sets of brackets',
+		}
+		self.defaultTitle = 'Solving using Null Factor Law'
+
+	def generate(self):
+		# todo finish
+		x = symbols('x')
+		a, b, c, d, e, f = symbols('a b c d e f')
+		if self.difficulty == 1:
+			Q = 'Q diff 1'
+			A = 'A diff 1'
+			LQ = Q
+			LA = A
+			return Q, A, LQ, LA
+		elif self.difficulty == 2:
+			Q = 'Q diff 2'
+			A = 'A diff 2'
+			LQ = Q
+			LA = A
+			return Q, A, LQ, LA
+		elif self.difficulty == 3:
+			Q = 'Q diff 3'
+			A = 'A diff 3'
+			LQ = Q
+			LA = A
 			return Q, A, LQ, LA

@@ -132,6 +132,23 @@ def makeQuestion(question, n, total, allQuestions):
 			pass # input not recognised, ignored
 	return lq, la
 
+def askDifficulty(question):
+	answer = None
+	while answer is None:
+		print('Starting problem difficulty?')
+		valid = []
+		for i in range(question.maxDifficulty):
+			valid.append(i+1)
+			print('[{}] {}'.format(i+1, question.description[i+1]))
+		raw = getch()
+		try:
+			raw = int(raw)
+			if raw in valid:
+				answer = raw
+		except ValueError:
+			pass
+	return answer
+
 def printDifficulty(question):
 	print('\n({}/{}) {}\n'.format(
 		question.difficulty,
@@ -211,7 +228,7 @@ def askNRules():
 
 def getch():
 	print('>', end='')
-	sys.stdout.flush()
+	sys.stdout.flush() # print now so '>' appears
 	bytestring = msvcrt.getch()
 	string = bytestring.decode('utf-8')
 	print(string)

@@ -8,7 +8,7 @@ Robert
 import sys
 import msvcrt
 import inspect
-import algebra
+import algebra, myfractions
 
 def createTopicDict():
 	"""
@@ -25,7 +25,7 @@ def createTopicDict():
 	t = {}
 	tText = []
 	j = None
-	for j, topic in enumerate([algebra]):
+	for j, topic in enumerate([algebra, myfractions]):
 		t[j+1] = topic.NAME
 		tText.append('[{}] {}'.format(j+1, topic.NAME))
 		i = 1

@@ -34,8 +34,8 @@ finished = False
 sheet = Worksheet(askFName())
 useDefaultNames = askUseDefaultNames()
 
-nRules = askNRules()
-nSections = askNSections()
+nRules = askNRules() # todo rename sections
+nSections = askNSections() # todo rename questions
 nSecPerRules = nSections
 
 # todo when 3 rules, 2 sections each, they get placed wrong

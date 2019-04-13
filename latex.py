@@ -122,6 +122,14 @@ class Worksheet:
 class Section:
 
 	def __init__(self, name, qs, ans, cols, rule):
+		"""
+		:param name:
+		:param qs:
+		:param ans:
+		:param cols:
+		:param rule: True to add rule before this section starts.
+		:return:
+		"""
 		assert cols is not None
 		self.name = name
 		self.qs = qs

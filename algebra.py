@@ -5,7 +5,7 @@ Robert
 21/02/2019
 """
 
-from base import Question, getPretty
+from base import Question, getPretty, randIntExcept
 import random
 from sympy import Eq, symbols, solve, latex, evaluate
 
@@ -146,10 +146,10 @@ class SolvingLinear(Question):
 			])
 			# todo random negative numbers without including 0
 			substitutions = [
-				(a, random.randint(-10, 10)),
-				(b, random.randint(-10, 10)),
-				(c, random.randint(-10, 10)),
-				(d, random.randint(-10, 10)),
+				(a, randIntExcept(-10, 10)),
+				(b, randIntExcept(-10, 10)),
+				(c, randIntExcept(-10, 10)),
+				(d, randIntExcept(-10, 10)),
 			]
 			for old, new in substitutions:
 				with evaluate(False):
@@ -170,11 +170,11 @@ class SolvingLinear(Question):
 			])
 			# todo random negative numbers without including 0
 			substitutions = [
-				(a, random.randint(-10, 10)),
-				(b, random.randint(-10, 10)),
-				(c, random.randint(-10, 10)),
-				(d, random.randint(-10, 10)),
-				(e, random.randint(-10, 10)),
+				(a, randIntExcept(-10, 10)),
+				(b, randIntExcept(-10, 10)),
+				(c, randIntExcept(-10, 10)),
+				(d, randIntExcept(-10, 10)),
+				(e, randIntExcept(-10, 10)),
 			]
 			for old, new in substitutions:
 				with evaluate(False):

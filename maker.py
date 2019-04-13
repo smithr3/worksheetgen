@@ -24,28 +24,26 @@ Robert
 
 from clti import *
 from latex import Worksheet
+import math
 
 t, d = createTopicDict()
-# print(t)
-# print(d, '\n')
 
 finished = False
 
 sheet = Worksheet(askFName())
 useDefaultNames = askUseDefaultNames()
 
-nRules = askNRules() # todo rename sections
-nSections = askNSections() # todo rename questions
-nSecPerRules = nSections
+nSections = askNSections()
+nQPerSection = askNQuestionTypes()
+nTotalQuestions = nQPerSection*nSections
 
-# todo when 3 rules, 2 sections each, they get placed wrong
 # todo if list of answers is < 10, use getch() for fast single char response
 
-if nRules > 0:
+if nSections > 1:
 	print('\nCreating presets for the sections in a question block.')
 	sectPresets = {}
-	for i in range(nSections):
-		print('\nSection {} of {}'.format(i+1, nSections))
+	for i in range(nQPerSection):
+		print('\nSection {} of {}'.format(i+1, nQPerSection))
 		topic = askTopic(t)
 		questionClass = askSubTopic(topic, d)
 		# print(questionClass, type(questionClass), questionClass.__dict__)
@@ -59,26 +57,29 @@ if nRules > 0:
 		}
 	print('\nFinished presets. Generating sections now.')
 	# print('len(sectPresets)', len(sectPresets))
-	nSections *= nRules
 
-for i in range(nSections):
+for i in range(nTotalQuestions):
 
-	print('\nSection {} of {}'.format(i+1, nSections))
+	print('\nSection {} of {}'.format(
+		math.floor(i/nQPerSection)+1,
+		nSections
+	))
 
-	if nRules > 0:
-		idx = i % nSecPerRules
+	if nSections > 1:
+		idx = i % nQPerSection
 		# print(i, nSecPerRules, idx)
 		topic = sectPresets[idx]['topic']
 		questionClass = sectPresets[idx]['questionClass']
 		nQuestions = sectPresets[idx]['nQuestions']
 		startingDifficulty = sectPresets[idx]['startingDifficulty']
 	else:
+		idx = i
 		topic = askTopic(t)
 		questionClass = askSubTopic(topic, d)
 		nQuestions = askNQuestions(questionClass.taskColumns)
 		startingDifficulty = askDifficulty(questionClass()) # todo I don't like instantiating the class just to get at the descriptions
 
-	# Make questions
+	# Make questionnQPerSections
 	qs, ans = [], []
 	question = questionClass(startingDifficulty)
 	for j in range(nQuestions):
@@ -92,7 +93,8 @@ for i in range(nSections):
 	#   think I prefer this method, allows more presets and ease of use
 
 	addRule = False
-	if nRules != 0 and i != 0 and i % nRules == 0:
+	# if starting new section and not first section
+	if idx == 0 and i != 0:
 		addRule = True
 
 	if useDefaultNames:

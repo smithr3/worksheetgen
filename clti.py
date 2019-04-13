@@ -77,10 +77,10 @@ def askSubTopic(t, d):
 	# print('You chose {}.\n'.format(answer))
 	return answer
 
-def askNSections():
+def askNQuestionTypes():
 	answer = None
 	while answer is None:
-		print('How many sections (per rule if any)?')
+		print('How many question types (per section if any)?')
 		raw = getch()
 		try:
 			raw = int(raw)
@@ -213,14 +213,14 @@ def askRule():
 			answer = False
 	return answer
 
-def askNRules():
+def askNSections():
 	answer = None
 	while answer is None:
-		print('How many ruled sections?')
+		print('How many sections?')
 		raw = getch()
 		try:
 			raw = int(raw)
-			if raw != 1:
+			if raw > 0:
 				answer = raw
 		except ValueError:
 			pass

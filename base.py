@@ -5,6 +5,7 @@ Robert
 21/02/2019
 """
 
+import random
 from sympy import pretty
 
 class Question:
@@ -78,3 +79,14 @@ class TestQuestion(Question):
 
 def getPretty(expr):
 	return pretty(expr, use_unicode=False)
+
+def randIntExcept(low, high, forbidden=0):
+	"""
+	Produces a random integer within the given range, but excluding a potential list of values.
+	"""
+	if type(forbidden) is int:
+		forbidden = [forbidden]
+	while True:
+		val = random.randint(low, high)
+		if val not in forbidden:
+			return val

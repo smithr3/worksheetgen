@@ -163,7 +163,7 @@ class MultDivFractions(Question):
 			2 : 'Multiplying with fractions and whole numbers',
 			3 : 'Dividing with simple fractions',
 			4 : 'Dividing with fractions and whole numbers',
-			5 : 'Multiplying/Dividing with fractions and whole numbers',
+			5 : 'Multiplying/dividing with fractions and whole numbers',
 		}
 		self.defaultTitle = 'Multiplying/Dividing Fractions'
 
@@ -244,3 +244,28 @@ class MultDivFractions(Question):
 		LQ = '$\displaystyle {}$'.format(LQ.format(a=a, b=b, c=c, d=d))
 		LA = '$\displaystyle {}$'.format(latex(soln))
 		return Q, A, LQ, LA
+
+class AllFractions(Question):
+	"""
+	Addition, subtraction, multiplication and division of fractions.
+	"""
+	taskColumns = 4
+	maxDifficulty = 1
+
+	def __init__(self, defaultDifficulty=1):
+		super().__init__(defaultDifficulty, self.maxDifficulty)
+		self.description = {
+			1 : 'Add/sub/mult/div fractions and whole numbers'
+		}
+		self.defaultTitle = 'Fractions'
+		self.addSubFractions = AddSubFractions(5)
+		self.multDivFractions = MultDivFractions(5)
+
+	def generate(self):
+		if self.difficulty == 1:
+			question = random.choice([
+				self.addSubFractions,
+				self.multDivFractions,
+			])
+			Q, A, LQ, LA = question.generate()
+			return Q, A, LQ, LA

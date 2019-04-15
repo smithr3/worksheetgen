@@ -16,8 +16,8 @@ def createTopicDict():
 		{1: 'Algebra', 2:'Fractions', 'i':2, 'text':'[1] Algebra [2] Fractions'}
 	And a dictionary of topics with subtopics, arranged as so:
 		{
-		'Algebra' : {1: 'SimpleManipulations', 2: 'Expanding', 'i':2, 'text' : '[1] SimpleManipulations [2] Expanding'},
-		'Fractions' : {1: 'Addition', 'text' : '[1] Addition'}
+		'Algebra' : {1: <class SimpleManipulations>, 2: 'Expanding', 'i':2, 'text' : '[1] SimpleManipulations [2] Expanding'},
+		'Fractions' : {1: <class Addition>, 'text' : '[1] Addition'}
 		}
 	:return; tuple of topic and subtopic dicts
 	"""
@@ -105,6 +105,15 @@ def askNQuestions(nCols):
 	return answer
 
 def makeQuestion(question, n, total, allQuestions):
+	"""
+	Returns latex strings for question and answer (n/total), given a question object and all previous
+	questions to prevent duplicates.
+	:param question: Question object
+	:param n: int
+	:param total: int
+	:param allQuestions: list of previous questions latex strings
+	:return: tuple of two strings
+	"""
 	satisfied = False
 	lq, la = None, None
 	# question = questionClass() # instantiate class, maybe make static class?

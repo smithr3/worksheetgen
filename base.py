@@ -82,7 +82,7 @@ def getPretty(expr):
 
 def randIntExcept(low, high, forbidden=0):
 	"""
-	Produces a random integer within the given range, but excluding a list of values.
+	Produces a random integer within the given range, but excluding a list of values (default 0)
 	"""
 	if type(forbidden) is int:
 		forbidden = [forbidden]

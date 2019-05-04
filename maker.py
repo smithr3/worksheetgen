@@ -39,6 +39,8 @@ nTotalQuestions = nQPerSection*nSections
 
 # todo if list of answers is < 10, use getch() for fast single char response
 
+# todo option to not use question titles
+
 if nSections > 1:
 	print('\nCreating presets for the sections in a question block.')
 	sectPresets = {}

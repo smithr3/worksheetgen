@@ -7,7 +7,7 @@ Robert
 
 from base import Question, getPretty, randIntExcept
 import random
-from sympy import Eq, symbols, solve, latex, evaluate
+from sympy import Eq, symbols, solve, latex, evaluate, expand, simplify
 
 NAME = 'Algebra'
 
@@ -93,7 +93,7 @@ class SolvingLinear(Question):
 		x + k = 4
 		ax + 3k = 8
 	"""
-	taskColumns = 4
+	taskColumns = 3
 	maxDifficulty = 4
 
 	def __init__(self, defaultDifficulty=1):
@@ -403,6 +403,8 @@ class SolvingNullFactor(Question):
 			substitutions = [
 				(a, random.randint(1, 10)),
 				(b, random.randint(1, 10)),
+				(c, random.randint(1, 10)),
+				(d, random.randint(1, 10)),
 			]
 		elif self.difficulty == 3:
 			eqn, LQ = random.choice([
@@ -477,3 +479,69 @@ class AllSolving(Question):
 			question.difficulty = difficulty
 			Q, A, LQ, LA = question.generate()
 			return Q, A, LQ, LA
+
+class Expand(Question):
+	"""
+	Expand the given expression.
+	-5(2x + y)
+	-2x(-5y + x)
+	(3x + 1)(3y + 1)
+	"""
+	taskColumns = 3
+	maxDifficulty = 2
+
+	def __init__(self, defaultDifficulty=1):
+		super().__init__(defaultDifficulty, self.maxDifficulty)
+		self.description = {
+			1 : '1 by 2-3 terms',
+			2 : '2 by 2-3 terms',
+			# 3 : '2 by 2 by 2 terms',
+		}
+		self.defaultTitle = 'Expand'
+
+	def generate(self):
+		x, y, z = symbols('x y z')
+		a, b, c, d, e, f = symbols('a b c d e f')
+		substitutions, eqn, LQ = [], None, None
+		if self.difficulty == 1:
+			eqn, LQ = random.choice([
+				(a*(b*x+c), r'{a}({b}x+{c})'),
+				(d + a*(b*x-c), r'{d}+{a}({b}x-{c})'),
+				(-a*(b*x+c*y), r'-{a}({b}x-{c})'),
+				(d-a*(-b*x+c*y), r'{d}-{a}({b}x-{c})'),
+				(a*x*(b*y+c*z), r'{a}x({b}y+{c}z)'),
+			])
+			substitutions = [
+				(a, random.randint(2, 10)),
+				(b, random.randint(2, 7)),
+				(c, random.randint(2, 10)),
+				(d, random.randint(1, 7)),
+				(e, random.randint(2, 10)),
+			]
+		elif self.difficulty == 2:
+			eqn, LQ = random.choice([
+				((a*x+b)*(c*x+d), r'({a}x+{b})({c}x+{d})'),
+				((-a*x+b)*(c*x-d), random.choice([r'(-{a}x+{b})({c}x-{d})', r'({c}x-{d})(-{a}x+{b})'])),
+				((a*y+b*x)*(c*y+d+e*z), r'({a}y+{b}x)({c}y+{d}+{e}z)'),
+			])
+			substitutions = [
+				(a, random.randint(2, 7)),
+				(b, random.randint(2, 10)),
+				(c, random.randint(2, 7)),
+				(d, random.randint(2, 10)),
+				(e, random.randint(2, 5)),
+			]
+		for old, new in substitutions:
+			with evaluate(False):
+				eqn = eqn.replace(old, new)
+		soln = simplify(expand(eqn))
+		a = substitutions[0][1]
+		b = substitutions[1][1]
+		c = substitutions[2][1]
+		d = substitutions[3][1]
+		e = substitutions[4][1]
+		Q = getPretty(eqn)
+		A = getPretty(soln)
+		LQ = '$\displaystyle {}$'.format(LQ.format(a=a, b=b, c=c, d=d, e=e))
+		LA = '$\displaystyle {}$'.format(latex(soln))
+		return Q, A, LQ, LA

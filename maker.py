@@ -31,7 +31,8 @@ t, d = createTopicDict()
 finished = False
 
 sheet = Worksheet(askFName())
-useDefaultNames = askUseDefaultNames()
+# useDefaultNames = askUseDefaultNames()
+useDefaultNames = True
 
 nSections = askNSections()
 nQPerSection = askNQuestionTypes()
@@ -39,7 +40,7 @@ nTotalQuestions = nQPerSection*nSections
 
 # todo if list of answers is < 10, use getch() for fast single char response
 
-# todo option to not use question titles
+# todo option to not use question titles at all
 
 if nSections > 1:
 	print('\nCreating presets for the sections in a question block.')

@@ -37,6 +37,13 @@ class Question:
 			return True
 		return False
 
+	def setDifficulty(self, value):
+		if 0 < value <= self.maxDifficulty:
+			self.difficulty = value
+		else:
+			raise Exception('Trying to set difficulty above max')
+
+
 	def getDescription(self):
 		# todo unused - either use, or make description a class attribute instead of object attribute
 		return self.description[self.difficulty]

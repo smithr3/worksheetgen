@@ -28,13 +28,13 @@ for topic_idx in t.keys():
 		question = questionClass()
 
 		# for each difficulty, create a section with one row of questions of that difficulty
-		for difficulty in range(question.maxDifficulty):
+		for j in range(question.maxDifficulty):
+			difficulty = j + 1
 			qs = []
 			ans = []
-			difficulty += 1
-			question.difficulty = difficulty
-			# create a row of questions
-			for i in range(question.taskColumns):
+			question.setDifficulty(difficulty)
+			# create two rows of questions
+			for i in range(question.taskColumns*2):
 				q, a, lq, la = question.generate()
 				qs.append(lq)
 				ans.append(la)

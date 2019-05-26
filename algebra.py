@@ -129,7 +129,9 @@ class SolvingLinear(Question):
 		elif self.difficulty == 2:
 			eqn = random.choice([
 				Eq(a*x + b, c),
+				Eq(a*x + b/d, c),
 				Eq(a*x - b, c),
+				Eq(a*x - b/d, c),
 				Eq(x/a + b, c),
 				Eq(x/a - b, c),
 			])
@@ -138,6 +140,7 @@ class SolvingLinear(Question):
 				(a, random.randint(2, 10)),
 				(b, random.randint(1, 10)),
 				(c, random.randint(0, 10)),
+				(d, random.randint(2, 7)),
 			])
 			# todo my own function that uses try/except to find no solutions
 			soln = Eq(x, solve(eqn, x)[0])
@@ -197,88 +200,6 @@ class SolvingLinear(Question):
 			LA = '$\displaystyle {}$'.format(latex(soln))
 			return Q, A, LQ, LA
 
-# class SolvingAlgebraicFractions(Question):
-# 	"""
-# 	Solving with fractions:
-# 		(x + 3) / 2 = 1
-# 		(4 - x) / 4 = x
-# 		(2x + 1) / x = 3
-# 	Possible extensions:
-# 		(x + 3) / 2 = (2x - 1) / 3
-# 		(x + 3) / 2 = (2x - 1) / 3x
-# 	"""
-# 	taskColumns = 4
-# 	maxDifficulty = 3
-#
-# 	def __init__(self, defaultDifficulty=1):
-# 		super().__init__(defaultDifficulty, self.maxDifficulty)
-# 		self.description = {
-# 			1 : 'One x',
-# 			2 : 'x on RHS',
-# 			3 : 'x in numerator and denominator',
-# 		}
-# 		self.defaultTitle = 'Solving with Fractions'
-#
-# 	def generate(self):
-# 		x = symbols('x')
-# 		a, b, c, d, e, f = symbols('a b c d e f')
-# 		substitutions, eqn, LQ = [], None, None
-# 		if self.difficulty == 1:
-# 			eqn, LQ = random.choice([
-# 				(Eq((a*x + b)/c, d), r'\frac{{ {a}x+{b} }}{{ {c} }} = {d}'),
-# 				(Eq((a*x - b)/c, d), r'\frac{{ {a}x-{b} }}{{ {c} }} = {d}'),
-# 				(Eq((a*x + b)/-c, d), r'\frac{{ {a}x+{b} }}{{ -{c} }} = {d}'),
-# 			])
-# 			substitutions = [
-# 				(a, random.randint(2, 10)),
-# 				(b, random.randint(1, 10)),
-# 				(c, random.randint(2, 10)),
-# 				(d, random.randint(2, 5)),
-# 			]
-# 		elif self.difficulty == 2:
-# 			eqn, LQ = random.choice([
-# 				(Eq((a*x + b)/c, x), r'\frac{{ {a}x+{b} }}{{ {c} }} = x'),
-# 				(Eq((a*x - b)/c, d*x), r'\frac{{ {a}x-{b} }}{{ {c} }} = {d}x'),
-# 				(Eq((a*x + b)/-c, d*x), r'\frac{{ {a}x+{b} }}{{ -{c} }} = {d}x'),
-# 				(Eq((b - a*x)/c, d*x), r'\frac{{ {b}-{a}x }}{{ {c} }} = {d}x'),
-# 			])
-# 			substitutions = [
-# 				(a, random.randint(2, 10)),
-# 				(b, random.randint(1, 10)),
-# 				(c, random.randint(2, 10)),
-# 				(d, random.randint(2, 5)),
-# 			]
-# 		elif self.difficulty == 3:
-# 			eqn, LQ = random.choice([
-# 				(Eq((a*x + b)/(c*x), d), r'\frac{{ {a}x+{b} }}{{ {c}x }} = {d}'),
-# 				(Eq((a*x + b)/(c*x), -d), r'\frac{{ {a}x+{b} }}{{ {c}x }} = -{d}'),
-# 				(Eq((b - a*x)/(c*x), d), r'\frac{{ {b}-{a}x }}{{ {c}x }} = {d}'),
-# 				(Eq((a*x + b)/(-c*x), -d), r'\frac{{ {a}x+{b} }}{{ -{c}x }} = -{d}'),
-# 			])
-# 			substitutions = [
-# 				(a, random.randint(2, 10)),
-# 				(b, random.randint(1, 10)),
-# 				(c, random.randint(2, 10)),
-# 				(d, random.randint(2, 5)),
-# 			]
-# 		for old, new in substitutions:
-# 			with evaluate(False):
-# 				eqn = eqn.replace(old, new)
-# 		try:
-# 			soln = Eq(x, solve(eqn, x)[0])
-# 		except IndexError:
-# 			# no solution
-# 			soln = 'No solution'
-# 		a = substitutions[0][1]
-# 		b = substitutions[1][1]
-# 		c = substitutions[2][1]
-# 		d = substitutions[3][1]
-# 		Q = getPretty(eqn)
-# 		A = getPretty(soln)
-# 		LQ = '$\displaystyle {}$'.format(LQ.format(a=a, b=b, c=c, d=d))
-# 		LA = '$\displaystyle {}$'.format(latex(soln))
-# 		return Q, A, LQ, LA
-
 class SolvingAlgebraicFractions(Question):
 	"""
 	Solve linear equations constructed from algebraic fractions, defined as
@@ -319,7 +240,8 @@ class SolvingAlgebraicFractions(Question):
 			eqn, LQ = random.choice([
 				(Eq(AF1, a), '{} = {}'.format(AFL1, a)),
 				(Eq(AF1, a*x), '{} = {}x'.format(AFL1, a)),
-				(Eq((a*x + b)/(c*x), d), r'\frac{{ {a}x+{b} }}{{ {c}x }} = {d}'.format(a=a, b=b, c=c, d=d)),
+				# this one causes exception since eqn=boolean for some reason
+				# (Eq((a*x + b)/(c*x), d), r'\frac{{ {a}x+{b} }}{{ {c}x }} = {d}'.format(a=a, b=b, c=c, d=d)),
 			])
 		elif self.difficulty == 2:
 			# I want a 0 to appear more often than 1/20 times, i.e. 30% instead of 5%
@@ -344,6 +266,10 @@ class SolvingAlgebraicFractions(Question):
 		except IndexError:
 			# no solution
 			soln = 'No solution'
+		except TypeError:
+			print(self.difficulty)
+			print(eqn)
+			print(LQ)
 		Q = getPretty(eqn)
 		A = getPretty(soln)
 		LQ = '$\displaystyle {}$'.format(LQ)
@@ -385,9 +311,11 @@ class SolvingNullFactor(Question):
 		if self.difficulty == 1:
 			eqn, LQ = random.choice([
 				(Eq(x*(x+a), 0), r'x(x+{a}) = 0'),
+				(Eq(x*(x+a/b), 0), r'x(x+\frac{{{a}}}{{{b}}}) = 0'),
 				(Eq(x*(x-a), 0), r'x(x-{a}) = 0'),
 				(Eq(a*x*(x+b), 0), r'{a}x(x+{b}) = 0'),
 				(Eq(a*x*(x-b), 0), r'{a}x(x-{b}) = 0'),
+				(Eq(a*x*(x-b/c), 0), r'{a}x(x-\frac{{{b}}}{{{c}}}) = 0'),
 			])
 			substitutions = [
 				(a, random.randint(2, 10)),
@@ -448,7 +376,7 @@ class AllSolving(Question):
 		self.description = {
 			1 : 'Linear - max one algebraic fraction',
 			2 : 'Quadratic - two solutions',
-			3 : 'Linear - hard algebraic fraction questions',
+			3 : 'Linear - with hard algebraic fraction questions',
 		}
 		self.defaultTitle = 'Solving'
 		self.solvingLinear = SolvingLinear()
@@ -473,8 +401,8 @@ class AllSolving(Question):
 			return Q, A, LQ, LA
 		elif self.difficulty == 3:
 			question, difficulty = random.choice([
-				(self.solvingLinear, random.randint(1, self.solvingLinear.maxDifficulty)),
-				(self.solvingAlgebraicFractions, random.randint(1, self.solvingLinear.maxDifficulty)),
+				(self.solvingLinear, random.randint(2, self.solvingLinear.maxDifficulty)),
+				(self.solvingAlgebraicFractions, random.randint(1, self.solvingAlgebraicFractions.maxDifficulty)),
 			])
 			question.difficulty = difficulty
 			Q, A, LQ, LA = question.generate()
@@ -506,21 +434,24 @@ class Expand(Question):
 		if self.difficulty == 1:
 			eqn, LQ = random.choice([
 				(a*(b*x+c), r'{a}({b}x+{c})'),
+				(a/d*(b*x+c), r'\frac{{ {a} }}{{ {d} }} ({b}x+{c})'),
 				(d + a*(b*x-c), r'{d}+{a}({b}x-{c})'),
-				(-a*(b*x+c*y), r'-{a}({b}x-{c})'),
-				(d-a*(-b*x+c*y), r'{d}-{a}({b}x-{c})'),
+				(d + a*(b*x-c/e), r'{d}+{a}({b}x-\frac{{ {c} }}{{ {e} }})'),
+				(-a*(b*x+c*y), r'-{a}({b}x+{c}y)'),
+				(d-a*(-b*x+c*y), r'{d}-{a}(-{b}x+{c}y)'),
 				(a*x*(b*y+c*z), r'{a}x({b}y+{c}z)'),
 			])
 			substitutions = [
 				(a, random.randint(2, 10)),
 				(b, random.randint(2, 7)),
 				(c, random.randint(2, 10)),
-				(d, random.randint(1, 7)),
+				(d, random.randint(2, 7)),
 				(e, random.randint(2, 10)),
 			]
 		elif self.difficulty == 2:
 			eqn, LQ = random.choice([
 				((a*x+b)*(c*x+d), r'({a}x+{b})({c}x+{d})'),
+				((a/e*x+b)*(c*x+d), r'(\frac{{ {a}x }}{{ {e} }}+{b})({c}x+{d})'),
 				((-a*x+b)*(c*x-d), random.choice([r'(-{a}x+{b})({c}x-{d})', r'({c}x-{d})(-{a}x+{b})'])),
 				((a*y+b*x)*(c*y+d+e*z), r'({a}y+{b}x)({c}y+{d}+{e}z)'),
 			])

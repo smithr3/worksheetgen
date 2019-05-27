@@ -465,7 +465,7 @@ class Expand(Question):
 		for old, new in substitutions:
 			with evaluate(False):
 				eqn = eqn.replace(old, new)
-		soln = simplify(expand(eqn))
+		soln = expand(eqn)
 		a = substitutions[0][1]
 		b = substitutions[1][1]
 		c = substitutions[2][1]

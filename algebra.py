@@ -259,7 +259,7 @@ class SolvingAlgebraicFractions(Question):
 		elif self.difficulty == 3:
 			eqn, LQ = random.choice([
 				(Eq(AF1 + AF2, AF3), '{} + {} = {}'.format(AFL1, AFL2, AFL3)),
-				(Eq(AF1 - AF2, AF3), '{} + {} = {}'.format(AFL1, AFL2, AFL3)),
+				(Eq(AF1 - AF2, AF3), '{} - {} = {}'.format(AFL1, AFL2, AFL3)),
 			])
 		try:
 			soln = Eq(x, solve(eqn, x)[0])

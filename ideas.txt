@@ -1,6 +1,3 @@
-fractions
-	add/sub with different denominators
-	divide/mult with different denominators
 arithmetic
 factorise
 terminology
@@ -8,27 +5,21 @@ terminology
 	relate (distance to speed)
 	define
 
+use matplotlib to do graphing questions
 
+is x=2 a soln of
+	null factor
+	AF = number
+	AF = AF
+	crazy sqrt, cubic etc stuff
+find x/y int of
+	y=mx+c
+	y-mx=c
+	ay-amx=ac
+find line parallel/perp to ay-amx=ac that passes through a point (choose line first then pick point using x=int)
 
-
-
-folder of .tex
-	add_two_fractions
-	sub_two_fractions
-
-class Question(object)
-	self.latex
-
-class Fraction(Question)
-
-	def getNQuestions(self, n)
-		return list
-
-Improvements:
-get rid of number range
-keep +/- numbers tho - although what to do when only want -'ve numbers? are there any of those times?
-clean up how questions and latex are defined
-document questions
+Command line interface
+-------------------------------
 
 Probably only need input(), but here are some libraries
 https://github.com/peterbrittain/asciimatics
@@ -37,8 +28,7 @@ https://github.com/kennethreitz/clint
 
 https://docs.sympy.org/latest/tutorial/printing.html
 
-Command line interface
--------------------------------
+
 
 Student:
 1) Otis Coyle, 2) Brandan Wong, 3) Hayden Mckenzie

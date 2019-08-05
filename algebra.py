@@ -266,10 +266,14 @@ class SolvingAlgebraicFractions(Question):
 		except IndexError:
 			# no solution
 			soln = 'No solution'
-		except TypeError:
-			print(self.difficulty)
-			print(eqn)
-			print(LQ)
+		except TypeError as e:
+			# print('TypeError', e)
+			# print('diff', self.difficulty)
+			# print('eqn', eqn)
+			# print('LQ', LQ)
+
+			# no solution either, something like -4x + 4x leaving no x's and no solution
+			soln = 'No solution'
 		Q = getPretty(eqn)
 		A = getPretty(soln)
 		LQ = '$\displaystyle {}$'.format(LQ)
@@ -375,8 +379,8 @@ class AllSolving(Question):
 		super().__init__(defaultDifficulty, self.maxDifficulty)
 		self.description = {
 			1 : 'Linear - max one algebraic fraction',
-			2 : 'Quadratic - two solutions',
-			3 : 'Linear - with hard algebraic fraction questions',
+			2 : 'Linear - hard algebraic fraction questions',
+			3 : 'Quadratic - two solutions',
 		}
 		self.defaultTitle = 'Solving'
 		self.solvingLinear = SolvingLinear()
@@ -394,15 +398,14 @@ class AllSolving(Question):
 			return Q, A, LQ, LA
 		elif self.difficulty == 2:
 			question, difficulty = random.choice([
-				(self.solvingNullFactor, random.randint(1,self.solvingNullFactor.maxDifficulty)),
+				(self.solvingAlgebraicFractions, random.randint(1, self.solvingAlgebraicFractions.maxDifficulty)),
 			])
 			question.difficulty = difficulty
 			Q, A, LQ, LA = question.generate()
 			return Q, A, LQ, LA
 		elif self.difficulty == 3:
 			question, difficulty = random.choice([
-				(self.solvingLinear, random.randint(2, self.solvingLinear.maxDifficulty)),
-				(self.solvingAlgebraicFractions, random.randint(1, self.solvingAlgebraicFractions.maxDifficulty)),
+				(self.solvingNullFactor, random.randint(1,self.solvingNullFactor.maxDifficulty)),
 			])
 			question.difficulty = difficulty
 			Q, A, LQ, LA = question.generate()
@@ -476,3 +479,91 @@ class Expand(Question):
 		LQ = '$\displaystyle {}$'.format(LQ.format(a=a, b=b, c=c, d=d, e=e))
 		LA = '$\displaystyle {}$'.format(latex(soln))
 		return Q, A, LQ, LA
+
+class Rearrange(Question):
+	"""
+	Challenging and varied rearranging questions. Rearrange for x.
+	2xy = 3
+	5/2x + y = 1/2
+	3x/2y = 5z/2
+	1 = y/(2x+1)
+	"""
+	taskColumns = 3
+	maxDifficulty = 2
+
+	def __init__(self, defaultDifficulty=1):
+		super().__init__(defaultDifficulty, self.maxDifficulty)
+		self.description = {
+			1 : '3 iterations',
+			2 : '5 iterations',
+		}
+		self.defaultTitle = 'Rearrange for x'
+
+		self.pronumerals = None
+		self.used = None
+
+	def generate(self):
+		iters = 1
+		if self.difficulty == 1:
+			iters = 3
+		elif self.difficulty == 2:
+			iters = 5
+
+		x = symbols('x')
+		# self.pronumerals = symbols('a b c d e f k m n p r t w y z', real=True)
+		self.pronumerals = symbols('a b c w y z', real=True)
+		self.used = []
+		substitutions, eqn, LQ = [], None, None
+
+		# left and right hand expressions
+		lh = x
+		rh = 0
+
+		for i in range(iters):
+			# chance to make RHS a pronumeral
+			if i == 0 and random.random() < 0.5:
+				rh = self.getVar()
+
+			# ensure something is done to LHS
+			if i < 2:
+				lh = self.extend(lh)
+			# otherwise 50-50 it's LHS or RHS
+			elif random.random() < 0.5:
+				lh = self.extend(lh)
+			else:
+				rh = self.extend(rh)
+
+		eqn = Eq(lh, rh)
+		try:
+			soln = solve(eqn, x)[0]
+			soln = Eq(x, soln)
+		except IndexError as e:
+			print(e)
+			soln = 'No solution'
+
+		Q = getPretty(eqn)
+		A = getPretty(soln)
+		LQ = '$\displaystyle {}$'.format(latex(eqn))
+		LA = '$\displaystyle {}$'.format(latex(soln))
+		return Q, A, LQ, LA
+
+	def extend(self, expr):
+		x = random.random()
+		if x < 0.3: # higher chance of adding than subbing
+			expr += self.getVar()
+		elif x < 0.4:
+			expr -= self.getVar()
+		elif x < 0.6:
+			expr *= self.getVar()
+		elif x < 0.8:
+			expr = self.getVar() / expr
+		else:
+			expr /= self.getVar()
+		return expr
+
+	def getVar(self):
+		pronumeral = random.choice(self.pronumerals)
+		while pronumeral in self.used:
+			pronumeral = random.choice(self.pronumerals)
+		self.used.append(pronumeral)
+		return pronumeral

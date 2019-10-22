@@ -38,9 +38,11 @@ nSections = askNSections()
 nQPerSection = askNQuestionTypes()
 nTotalQuestions = nQPerSection*nSections
 
+# todo way to define new pool of question types to take random questions from
+
 # todo if list of answers is < 10, use getch() for fast single char response
 
-# todo option to not use question titles at all
+# todo option to not use question titles at all, or subsection* so no numbering, see Otis Algebra 18
 
 if nSections > 1:
 	print('\nCreating presets for the sections in a question block.')

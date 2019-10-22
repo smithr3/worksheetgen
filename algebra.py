@@ -368,6 +368,110 @@ class SolvingNullFactor(Question):
 		LA = '$\displaystyle x={}, \ {}$'.format(soln[0], soln[1])
 		return Q, A, LQ, LA
 
+class SolvingQuadratic(Question):
+	"""
+	Solving quadratic equations, requiring factorisation first. Monic and non-monic, DoTS, completing the square?
+	x^2 + 4x + 3
+	"""
+	taskColumns = 3
+	maxDifficulty = 4
+
+	def __init__(self, defaultDifficulty=1):
+		super().__init__(defaultDifficulty, self.maxDifficulty)
+		self.description = {
+			1 : 'Highest common factor',
+			2 : 'Cross method',
+			3 : 'Difference of perfect squares',
+			4 : 'Non-monic',
+		}
+		self.defaultTitle = 'Solving Quadratics'
+
+	def generate(self):
+		x = symbols('x')
+		a, b, c, d, e, f = symbols('a b c d e f')
+		substitutions, eqn, LQ = [], None, None
+		# HCF
+		if self.difficulty == 1:
+			expr = expand(random.choice([
+				x*(x+a),
+				x*(x-a),
+			]))
+			if random.random() < 0.3:
+				expr *= b
+			if random.random() < 0.3:
+				expr *= -1
+			eqn = Eq(expr, 0)
+			substitutions = [
+				(a, random.randint(2, 10)),
+				(b, random.randint(2, 10)),
+				(c, random.randint(2, 10)),
+				(d, random.randint(1, 10)),
+			]
+		# Cross
+		elif self.difficulty == 2:
+			expr = expand(random.choice([
+				(x+a)*(x+b),
+				(x-a)*(x+b),
+				(x+a)*(x-b),
+				(x-a)*(x-b),
+			]))
+			if random.random() < 0.5:
+				expr *= c
+			eqn = Eq(expr, 0)
+			substitutions = [
+				(a, random.randint(2, 10)),
+				(b, random.randint(1, 6)),
+				(c, random.randint(2, 5)),
+				(d, random.randint(1, 10)),
+			]
+		# DOPS
+		elif self.difficulty == 3:
+			expr = expand(random.choice([
+				(x+a)*(x-a),
+				(a*x+b)*(a*x-b),
+			]))
+			if random.random() < 0.3:
+				expr *= c
+			eqn = Eq(expr, 0)
+			substitutions = [
+				(a, random.randint(2, 10)),
+				(b, random.randint(1, 10)),
+				(c, random.randint(2, 5)),
+				(d, random.randint(1, 10)),
+			]
+		# Non-monic
+		elif self.difficulty == 4:
+			expr = expand(random.choice([
+				(a*x+b)*(x+d),
+				(a*x+b)*(c*x+d),
+			]))
+			if random.random() < 0.3:
+				expr *= a
+			eqn = Eq(expr, 0)
+			substitutions = [
+				(a, random.randint(2, 4)),
+				(b, random.randint(2, 10)),
+				(c, random.randint(2, 5)),
+				(d, random.randint(2, 5)),
+			]
+		for old, new in substitutions:
+			with evaluate(True):
+				eqn = eqn.replace(old, new)
+		try:
+			soln = solve(eqn, x)[0], solve(eqn, x)[1]
+		except IndexError:
+			# no solution
+			soln = 'No solution'
+		a = substitutions[0][1]
+		b = substitutions[1][1]
+		c = substitutions[2][1]
+		d = substitutions[3][1]
+		Q = getPretty(eqn)
+		A = getPretty(soln)
+		LQ = '$\displaystyle {}$'.format(latex(eqn))
+		LA = '$\displaystyle x={}, \ {}$'.format(soln[0], soln[1])
+		return Q, A, LQ, LA
+
 class AllSolving(Question):
 	"""
 	All solving for x questions, sorted into linear (one solution) and quadratic (2 solutions) difficulty buckets.
@@ -386,6 +490,7 @@ class AllSolving(Question):
 		self.solvingLinear = SolvingLinear()
 		self.solvingAlgebraicFractions = SolvingAlgebraicFractions()
 		self.solvingNullFactor = SolvingNullFactor()
+		# todo solvingQuadratic
 
 	def generate(self):
 		if self.difficulty == 1:
@@ -490,6 +595,9 @@ class Rearrange(Question):
 	"""
 	taskColumns = 3
 	maxDifficulty = 2
+
+	# todo solve for something different can give more interesting answers
+	# todo more variety in techniques
 
 	def __init__(self, defaultDifficulty=1):
 		super().__init__(defaultDifficulty, self.maxDifficulty)
